@@ -1,0 +1,28 @@
+.home-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #f3f4f6;
+}
+
+.home-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  background: #f3f4f6;
+}
+
+@media (min-width: 1024px) {
+  .home-content {
+    flex-direction: row;
+  }
+
+  .main-content {
+    margin-left: 0;
+  }
+}

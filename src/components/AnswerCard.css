@@ -1,0 +1,136 @@
+.answer-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.card-header svg {
+  color: #3b82f6;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.card-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1;
+  max-width: 44px;
+  padding: 8px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.card-item:hover {
+  border-color: #3b82f6;
+  transform: scale(1.05);
+}
+
+.card-item.current {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.card-item.correct {
+  background: #10b981;
+  border-color: #10b981;
+  color: white;
+}
+
+.card-item.wrong {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: white;
+}
+
+.card-item.unanswered {
+  background: white;
+  border-color: #e5e7eb;
+}
+
+.card-legend {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding-top: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+}
+
+.legend-dot.correct {
+  background: #10b981;
+}
+
+.legend-dot.wrong {
+  background: #ef4444;
+}
+
+.legend-dot.unanswered {
+  background: white;
+  border: 2px solid #e5e7eb;
+}
+
+.legend-text {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+@media (max-width: 768px) {
+  .card-grid {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+  }
+
+  .card-item {
+    font-size: 13px;
+    padding: 6px;
+  }
+
+  .card-legend {
+    gap: 12px;
+  }
+
+  .legend-text {
+    font-size: 11px;
+  }
+}
