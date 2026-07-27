@@ -9,7 +9,7 @@ interface AnswerCardProps {
 }
 
 const AnswerCard: React.FC<AnswerCardProps> = ({ questions }) => {
-  const { currentQuestionIndex, setCurrentQuestionIndex, getAnswerStatus } = useExamStore();
+  const { currentQuestionIndex, setCurrentQuestionIndex, getAnswerStatus,answerCard } = useExamStore();
 
   const handleQuestionClick = (index: number) => {
     setCurrentQuestionIndex(index);
@@ -23,17 +23,17 @@ const AnswerCard: React.FC<AnswerCardProps> = ({ questions }) => {
       </div>
 
       <div className="card-grid">
-        {questions.map((question, index) => {
-          const status = getAnswerStatus(question.id);
+        {answerCard.options.map((question, index) => {
+          const status = question.isCorrect;
           const isCurrent = index === currentQuestionIndex;
           
           return (
             <button
-              key={question.id}
+              key={question.questionId}
               className={`card-item ${status} ${isCurrent ? 'current' : ''}`}
               onClick={() => handleQuestionClick(index)}
             >
-              {index + 1}
+              {question.questionNumber}
             </button>
           );
         })}

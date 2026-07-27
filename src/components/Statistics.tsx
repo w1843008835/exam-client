@@ -8,7 +8,7 @@ interface StatisticsProps {
 }
 
 const Statistics: React.FC<StatisticsProps> = ({ onRetake }) => {
-  const { getStatistics, isCompleted } = useExamStore();
+  const { getStatistics, isCompleted,answerCard } = useExamStore();
   const { correct, wrong, unanswered, accuracy } = getStatistics();
 
   return (
@@ -19,7 +19,7 @@ const Statistics: React.FC<StatisticsProps> = ({ onRetake }) => {
             <Trophy size={24} />
           </div>
           <div className="stat-content">
-            <span className="stat-value">{correct}</span>
+            <span className="stat-value">{answerCard.correct}</span>
             <span className="stat-label">答对</span>
           </div>
         </div>
@@ -29,7 +29,7 @@ const Statistics: React.FC<StatisticsProps> = ({ onRetake }) => {
             <XCircle size={24} />
           </div>
           <div className="stat-content">
-            <span className="stat-value">{wrong}</span>
+            <span className="stat-value">{answerCard.incorrect}</span>
             <span className="stat-label">答错</span>
           </div>
         </div>
@@ -39,20 +39,11 @@ const Statistics: React.FC<StatisticsProps> = ({ onRetake }) => {
             <HelpCircle size={24} />
           </div>
           <div className="stat-content">
-            <span className="stat-value">{unanswered}</span>
+            <span className="stat-value">{answerCard.undo}</span>
             <span className="stat-label">未答</span>
           </div>
         </div>
 
-        <div className="stat-card accuracy">
-          <div className="stat-icon">
-            <Percent size={24} />
-          </div>
-          <div className="stat-content">
-            <span className="stat-value">{accuracy}%</span>
-            <span className="stat-label">正确率</span>
-          </div>
-        </div>
       </div>
 
       {isCompleted && (

@@ -1,10 +1,28 @@
-import React from 'react';
-import { BookOpen, Layers } from 'lucide-react';
-import ExamCard from '../components/ExamCard';
-import { exams } from '../mock/data';
-import './ExamListPage.css';
+import React, { useState, useEffect } from 'react';
+import { BookOpen, Layers, Loader2 } from 'lucide-react';
+import ExamCard from '../../components/ExamCard';
+import { getExamList } from '@/service/examService';
+import type { Exam } from '@/types';
+import '@/pages/style/ExamListPage.css';
 
 const ExamListPage: React.FC = () => {
+  const [exams, setExams] = useState<Exam[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getExamList()
+      .then(setExams)
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="exam-list-container flex items-center justify-center">
+        <Loader2 className="animate-spin" size={32} />
+      </div>
+    );
+  }
+
   return (
     <div className="exam-list-container">
       <div className="page-header">

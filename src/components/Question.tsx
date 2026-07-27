@@ -15,11 +15,14 @@ const Question: React.FC<QuestionProps> = ({ question, questionNumber, totalQues
     currentQuestionIndex,
     setCurrentQuestionIndex,
     userAnswers,
-    addUserAnswer
+    addUserAnswer,
+    answerCard,
+    questionDetail,
+    exam,
   } = useExamStore();
 
   const userAnswer = userAnswers.find(a => a.questionId === question.id);
-  const isMultipleChoice = question.questionType === 2;
+  const isMultipleChoice = questionDetail.questionType === '多选题';
 
   const [tempSelected, setTempSelected] = useState<string[]>([]);
 
@@ -111,34 +114,42 @@ const Question: React.FC<QuestionProps> = ({ question, questionNumber, totalQues
   return (
     <div className="question-container">
       <div className="question-header">
-        <span className="question-badge">第 {questionNumber} / {totalQuestions} 题</span>
+        <span className="question-badge">第 {questionDetail.sort} / {exam.questionCount} 题</span>
         <span className={`question-type ${isMultipleChoice ? 'multiple' : 'single'}`}>
-          {isMultipleChoice ? '多选题' : '单选题'}
+          {questionDetail.questionType}
         </span>
       </div>
 
       <div className="question-stem">
-        <p>{question.stem}</p>
+        <p>{questionDetail.title}</p>
       </div>
 
       <div className="options-list">
-        {optionKeys.map((key) => (
+        
+        {
+       questionDetail.options.map((item, idx) => (
+      <div key={idx}>
+        {item.label}:{item.value}
+     
+      </div>
+    ))
+        /* {questionDetail.options.map((item) => (
           <button
-            key={key}
-            className={getOptionClass(key)}
-            onClick={() => !showResult && handleOptionSelect(key)}
+            key={item.key}
+            className={getOptionClass(item.key)}
+            onClick={() => !showResult && handleOptionSelect(item.key)}
             disabled={showResult}
           >
-            <span className="option-label">{key}</span>
-            <span className="option-text">{question.options[key]}</span>
-            {showResult && question.correctAnswer.includes(key) && (
+            <span className="option-label">{item.key}</span>
+            <span className="option-text">{item[item.key]}</span>
+            {showResult && question.correctAnswer.includes(item.key) && (
               <CheckCircle size={20} className="option-icon correct-icon" />
             )}
-            {showResult && isOptionSelected(key) && !question.correctAnswer.includes(key) && (
+            {showResult && isOptionSelected(item.key) && !question.correctAnswer.includes(item.key) && (
               <XCircle size={20} className="option-icon wrong-icon" />
             )}
           </button>
-        ))}
+        ))} */}
       </div>
 
       {showResult && (
@@ -146,13 +157,16 @@ const Question: React.FC<QuestionProps> = ({ question, questionNumber, totalQues
           <div className="answer-info">
             <div className="answer-item">
               <span className="answer-label">正确答案：</span>
-              <span className="answer-value correct">{formatAnswer(question.correctAnswer)}</span>
+              <span className="answer-value correct">{questionDetail.correctAnswer}</span>
             </div>
             <div className="answer-item">
               <span className="answer-label">你的答案：</span>
-              <span className={`answer-value ${userAnswer?.isCorrect ? 'correct' : 'wrong'}`}>
-                {formatAnswer(selectedOptions)}
-              </span>
+             questionDetail.correctAnswer === questionDetail.userAnswer ? (
+              <span className="answer-value correct">{questionDetail.userAnswer}</span>
+            ) : (
+              <span className="answer-value wrong">{questionDetail.userAnswer}</span>
+            )
+              
             </div>
           </div>
 
@@ -161,7 +175,7 @@ const Question: React.FC<QuestionProps> = ({ question, questionNumber, totalQues
               <Lightbulb size={18} />
               <span>解析</span>
             </div>
-            <p className="explanation-text">{question.explanation}</p>
+            <p className="explanation-text">{questionDetail.analysis}</p>
           </div>
         </div>
       )}

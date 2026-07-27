@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
-import Header from '../components/Header';
-import Sidebar from '../components/Sidebar';
-import { useExamStore } from '../store/examStore';
-import './HomePage.css';
+import Header from '../../components/Header';
+import Sidebar from '../../components/Sidebar';
+import { useExamStore } from '../../store/examStore';
+import '@/pages/style/HomePage.css';
 
 const HomePage: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);

@@ -1,8 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import LoginPage from "@/pages/LoginPage";
-import HomePage from "@/pages/HomePage";
-import ExamListPage from "@/pages/ExamListPage";
-import ExamDetailPage from "@/pages/ExamDetailPage";
+import LoginPage from "@/pages/layout/LoginPage";
+import HomePage from "@/pages/layout/HomePage";
+import ExamListPage from "@/pages/layout/ExamListPage";
+import ExamDetailPage from "@/pages/layout/ExamDetailPage";
 import { useExamStore } from "@/store/examStore";
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {

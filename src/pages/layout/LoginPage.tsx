@@ -1,33 +1,38 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Lock, AlertCircle } from 'lucide-react';
-import { useExamStore } from '../store/examStore';
-import { mockLogin } from '../mock/data';
-import './LoginPage.css';
-
+import { useExamStore } from '../../store/examStore';
+import '@/pages/style/LoginPage.css';
+import {login} from '@/service/authService';
+import {LoginDTO} from '@/types/index'
+import { useForm } from "react-hook-form"
+import { toast } from "@/utils/toast"
 const LoginPage: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const login = useExamStore((state) => state.login);
-
+ const form = useForm<LoginDTO>({
+    defaultValues: {
+      username: "",
+      password: "",
+    },
+  })
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     await new Promise(resolve => setTimeout(resolve, 500));
-
-    const result = mockLogin(username, password);
-
-    if (result.success) {
-      login(result.user!.username, result.token);
-      navigate('/home');
-    } else {
-      setError('用户名或密码错误');
-    }
+  try {
+    const result = await login({"username":username, "password":password});
+    useExamStore.getState().login(result.userName, result.token);
+    navigate('/home');
+  } catch (error) {
+    toast.error("登录失败");
+  }
+   
 
     setLoading(false);
   };
@@ -80,9 +85,7 @@ const LoginPage: React.FC = () => {
             {loading ? '登录中...' : '登录'}
           </button>
 
-          <div className="login-hint">
-            <span>提示：用户名 admin，密码 123456</span>
-          </div>
+      
         </form>
       </div>
     </div>

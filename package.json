@@ -17,7 +17,10 @@
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.3.0",
     "tailwind-merge": "^3.0.2",
-    "zustand": "^5.0.3"
+    "zustand": "^5.0.3",
+    "ofetch": "^1.5.1",
+    "react-hook-form": "^7.80.0",
+      "antd": "^6.4.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",

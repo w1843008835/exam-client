@@ -1,12 +1,12 @@
 import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, FileText } from 'lucide-react';
-import Question from '../components/Question';
-import AnswerCard from '../components/AnswerCard';
-import Statistics from '../components/Statistics';
-import { useExamStore } from '../store/examStore';
-import { getExamById, getQuestionsByExamId } from '../mock/data';
-import './ExamDetailPage.css';
+import Question from '../../components/Question';
+import AnswerCard from '../../components/AnswerCard';
+import Statistics from '../../components/Statistics';
+import { useExamStore } from '../../store/examStore';
+import { getExamById, getQuestionsByExamId } from '../../mock/data';
+import '@/pages/style/ExamDetailPage.css';
 
 const ExamDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();

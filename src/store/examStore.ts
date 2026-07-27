@@ -8,8 +8,15 @@ interface ExamStore {
   currentQuestionIndex: number;
   userAnswers: UserAnswer[];
   isCompleted: boolean;
+  answerCard: UserAnswer ;
+  questionDetail: Question ;
+  exam: Exam ;
   login: (username: string, token: string) => void;
   logout: () => void;
+  setAnswerCard: (answerCard: UserAnswer) => void;
+  setQuestionDetail: (questionDetail: Question) => void;
+  setExam:(exam: Exam) => void;
+ 
   setCurrentExam: (exam: Exam | null) => void;
   setQuestions: (questions: Question[]) => void;
   setCurrentQuestionIndex: (index: number) => void;
@@ -27,14 +34,21 @@ export const useExamStore = create<ExamStore>((set, get) => ({
   currentQuestionIndex: 0,
   userAnswers: [],
   isCompleted: false,
+  answerCard: null,
+  questionDetail: null,
+  exam: null,
 
   login: (username, token) => set({ user: { username, token } }),
 
   logout: () => set({ user: null }),
+  setAnswerCard: (answerCard) => set({ answerCard }),
+  setQuestionDetail: (questionDetail) => set({ questionDetail }),
+  setExam:(exam)=> set({ exam }),
 
   setCurrentExam: (exam) => set({ currentExam: exam }),
 
   setQuestions: (questions) => set({ questions }),
+
 
   setCurrentQuestionIndex: (index) => set({ currentQuestionIndex: index }),
 
@@ -56,11 +70,6 @@ export const useExamStore = create<ExamStore>((set, get) => ({
     isCompleted: false
   }),
 
-  getAnswerStatus: (questionId) => {
-    const answer = get().userAnswers.find(a => a.questionId === questionId);
-    if (!answer) return 'unanswered';
-    return answer.isCorrect ? 'correct' : 'wrong';
-  },
 
   getStatistics: () => {
     const { userAnswers, questions } = get();
