@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, FileText } from 'lucide-react';
 import Question from '../../components/Question';
 import AnswerCard from '../../components/AnswerCard';
-import Statistics from '../../components/Statistics';
 import { useExamStore } from '../../store/examStore';
 import { getExamById, getQuestionsByExamId } from '../../mock/data';
 import '@/pages/style/ExamDetailPage.css';
@@ -18,7 +17,8 @@ const ExamDetailPage: React.FC = () => {
     questions,
     setQuestions,
     currentQuestionIndex,
-    resetExam
+    resetExam,
+    exam,
   } = useExamStore();
 
   useEffect(() => {
@@ -36,10 +36,6 @@ const ExamDetailPage: React.FC = () => {
 
   const handleBack = () => {
     navigate('/home/exam-list');
-  };
-
-  const handleRetake = () => {
-    resetExam();
   };
 
   if (!currentExam || questions.length === 0) {
@@ -62,7 +58,7 @@ const ExamDetailPage: React.FC = () => {
           <ArrowLeft size={20} />
           <span>返回</span>
         </button>
-        <h2 className="exam-title">{currentExam.title}</h2>
+        <h2 className="exam-title">{exam.title}</h2>
       </div>
 
       <div className="detail-content">
@@ -75,8 +71,7 @@ const ExamDetailPage: React.FC = () => {
         </div>
 
         <div className="sidebar-section">
-          <AnswerCard questions={questions} />
-          <Statistics onRetake={handleRetake} />
+          <AnswerCard />
         </div>
       </div>
     </div>

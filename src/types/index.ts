@@ -30,7 +30,7 @@ export interface UserAnswer {
 export interface UserAnswerOption {
   questionId: number;
   questionNumber:number;
-  isCorrect: boolean;
+  isCorrect: string;
 }
 
 export interface ExamState {

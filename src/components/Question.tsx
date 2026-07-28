@@ -3,7 +3,9 @@ import { ChevronLeft, ChevronRight, CheckCircle, XCircle, Lightbulb } from 'luci
 import { Question as QuestionType } from '../types';
 import { useExamStore } from '../store/examStore';
 import './Question.css';
-
+import { getExamDetail, getAnswerCard } from '@/service/examService';
+import { USER_ID } from '@/constant/const';
+import { Exam, QuestionDetailDto } from '@/types';
 interface QuestionProps {
   question: QuestionType;
   questionNumber: number;
@@ -20,6 +22,15 @@ const Question: React.FC<QuestionProps> = ({ question, questionNumber, totalQues
     questionDetail,
     exam,
   } = useExamStore();
+
+   const [questionDetailParam, setQuestionDetailParam] = useState<QuestionDetailDto>(() => ({
+    userId: Number(localStorage.getItem(USER_ID)),
+    examType: exam.examType,
+    userAnswer: null,
+    questionNumber: 1,
+  }));
+
+  const [choices, setChoices]=useState<string>(null)
 
   const userAnswer = userAnswers.find(a => a.questionId === question.id);
   const isMultipleChoice = questionDetail.questionType === '多选题';
@@ -53,42 +64,82 @@ const Question: React.FC<QuestionProps> = ({ question, questionNumber, totalQues
     return sortedSelected.every((val, idx) => val === sortedCorrect[idx]);
   };
 
-  const handleOptionSelect = (optionKey: string) => {
-    if (showResult) return;
-    
+  const handleOptionSelect = async (optionKey: string) => {
+
+    // ▼ 先计算出新的 choices 值，避免 stale closure
+    let newChoices = '';
     if (isMultipleChoice) {
-      setTempSelected(prev => {
-        if (prev.includes(optionKey)) {
-          return prev.filter(key => key !== optionKey);
-        } else {
-          return [...prev, optionKey];
-        }
-      });
+      const arr = choices ? choices.split(',') : [];
+      if (arr.includes(optionKey)) {
+        // 已选中则取消选中
+        newChoices = arr.filter(k => k !== optionKey).join(',');
+      } else {
+        arr.push(optionKey);
+        newChoices = arr.join(',');
+      }
     } else {
-      const newSelected = [optionKey];
-      const isCorrect = checkAnswer(newSelected, question.correctAnswer);
-      addUserAnswer(question.id, newSelected, isCorrect);
+      newChoices = String(optionKey);
+    }
+    setChoices(newChoices);  // ← 用新计算的值更新 state
+
+    const currentIndex = questionDetail.sort;
+    if (currentIndex > 1) {
+      const newParam = {
+        ...questionDetailParam,
+        userAnswer: newChoices,  // ← 直接用新值，不等 state 更新
+      };
+      setQuestionDetailParam(newParam);
+      console.log("newParam",newParam)
+      const newQuestionDetail = await getExamDetail(newParam);
+      useExamStore.getState().setQuestionDetail(newQuestionDetail);
+
+      const newAnswers = await getAnswerCard(exam.examType);
+      useExamStore.getState().setAnswerCard(newAnswers);
     }
   };
 
-  const handleSubmit = () => {
-    if (tempSelected.length === 0) return;
-    const isCorrect = checkAnswer(tempSelected, question.correctAnswer);
-    addUserAnswer(question.id, tempSelected, isCorrect);
-  };
+  const handleSubmit = async() => {
+    const currentIndex = questionDetail.sort;
+    if (currentIndex > 1) {
+      const newParam = {
+        ...questionDetailParam,
+        userAnswer: choices,
+      };
+      setQuestionDetailParam(newParam);
+          console.log("questionDetailParam",questionDetailParam)
+      const newQuestionDetail = await getExamDetail(newParam);
+      useExamStore.getState().setQuestionDetail(newQuestionDetail);
 
-  const handlePrev = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
+     const newAnswers= await getAnswerCard(exam.examType);
+     useExamStore.getState().setAnswerCard(newAnswers);
     }
   };
 
-  const handleNext = () => {
-    if (currentQuestionIndex < totalQuestions - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
+  const handlePrev = async () => {
+    const currentIndex = questionDetail.sort;
+    if (currentIndex > 1) {
+      const newParam = {
+        ...questionDetailParam,
+        questionNumber: currentIndex - 1,
+      };
+      setQuestionDetailParam(newParam);
+      const newQuestionDetail = await getExamDetail(newParam);
+      useExamStore.getState().setQuestionDetail(newQuestionDetail);
     }
   };
 
+  const handleNext = async () => {
+    const currentIndex = questionDetail.sort;
+    if (currentIndex < exam.questionCount) {
+      const newParam = {
+        ...questionDetailParam,
+        questionNumber: currentIndex + 1,
+      };
+      setQuestionDetailParam(newParam);
+      const newQuestionDetail = await getExamDetail(newParam);
+      useExamStore.getState().setQuestionDetail(newQuestionDetail);
+    }
+  }
   const getOptionClass = (key: string) => {
     const classes = ['option-item'];
     
@@ -128,28 +179,25 @@ const Question: React.FC<QuestionProps> = ({ question, questionNumber, totalQues
         
         {
        questionDetail.options.map((item, idx) => (
-      <div key={idx}>
-        {item.label}:{item.value}
-     
-      </div>
-    ))
-        /* {questionDetail.options.map((item) => (
+
           <button
-            key={item.key}
-            className={getOptionClass(item.key)}
-            onClick={() => !showResult && handleOptionSelect(item.key)}
+            key={item.label}
+            className={getOptionClass(item.label)}
+            onClick={() => !showResult && handleOptionSelect(item.label)}
             disabled={showResult}
           >
-            <span className="option-label">{item.key}</span>
-            <span className="option-text">{item[item.key]}</span>
-            {showResult && question.correctAnswer.includes(item.key) && (
+            <span className="option-label">{item.label}</span>
+            <span className="option-text">{item.value}</span>
+            {showResult && question.correctAnswer.includes(item.label) && (
               <CheckCircle size={20} className="option-icon correct-icon" />
             )}
-            {showResult && isOptionSelected(item.key) && !question.correctAnswer.includes(item.key) && (
+            {showResult && isOptionSelected(item.label) && !question.correctAnswer.includes(item.key) && (
               <XCircle size={20} className="option-icon wrong-icon" />
             )}
           </button>
-        ))} */}
+        ))} 
+       
+      
       </div>
 
       {showResult && (
@@ -184,7 +232,7 @@ const Question: React.FC<QuestionProps> = ({ question, questionNumber, totalQues
         <button
           className="nav-button prev"
           onClick={handlePrev}
-          disabled={currentQuestionIndex === 0}
+          disabled={questionDetail.sort === 1}
         >
           <ChevronLeft size={20} />
           <span>上一题</span>

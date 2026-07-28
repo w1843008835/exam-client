@@ -5,132 +5,148 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.card-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
+.answer-card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 16px 0;
   padding-bottom: 12px;
   border-bottom: 1px solid #e5e7eb;
 }
 
-.card-header svg {
-  color: #3b82f6;
+/* 单个统计区块 */
+.stat-section {
+  border-radius: 10px;
+  margin-bottom: 10px;
+  overflow: hidden;
 }
 
-.card-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0;
+.stat-section.correct {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
 }
 
-.card-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
-  margin-bottom: 16px;
+.stat-section.wrong {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
 }
 
-.card-item {
+.stat-section.unanswered {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+}
+
+/* 区块头部（可点击展开/收起） */
+.stat-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 100%;
-  aspect-ratio: 1;
-  max-width: 44px;
-  padding: 8px;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #374151;
+  gap: 8px;
+  padding: 12px 14px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  background: white;
+  user-select: none;
+  transition: background 0.15s ease;
 }
 
-.card-item:hover {
-  border-color: #3b82f6;
-  transform: scale(1.05);
+.stat-header:hover {
+  background: rgba(0, 0, 0, 0.04);
 }
 
-.card-item.current {
-  border-color: #3b82f6;
-  background: #eff6ff;
+.stat-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  flex: 1;
 }
 
-.card-item.correct {
-  background: #10b981;
-  border-color: #10b981;
-  color: white;
+.stat-count {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-right: 4px;
 }
 
-.card-item.wrong {
-  background: #ef4444;
-  border-color: #ef4444;
-  color: white;
+.stat-header svg:last-child {
+  color: #9ca3af;
+  flex-shrink: 0;
 }
 
-.card-item.unanswered {
-  background: white;
-  border-color: #e5e7eb;
+/* 图标颜色 */
+.icon-correct {
+  color: #16a34a;
 }
 
-.card-legend {
+.icon-wrong {
+  color: #dc2626;
+}
+
+.icon-unanswered {
+  color: #9ca3af;
+}
+
+/* 展开后的列表区域 */
+.stat-body {
+  padding: 6px 14px 12px;
+}
+
+.stat-list {
   display: flex;
-  justify-content: center;
-  gap: 20px;
-  padding-top: 12px;
-  border-top: 1px solid #e5e7eb;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
 }
 
-.legend-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 4px;
+.stat-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
-.legend-dot.correct {
-  background: #10b981;
+.stat-item.item-correct {
+  background: #16a34a;
+  color: white;
 }
 
-.legend-dot.wrong {
-  background: #ef4444;
+.stat-item.item-correct:hover {
+  background: #15803d;
+  transform: scale(1.1);
 }
 
-.legend-dot.unanswered {
+.stat-item.item-wrong {
+  background: #dc2626;
+  color: white;
+}
+
+.stat-item.item-wrong:hover {
+  background: #b91c1c;
+  transform: scale(1.1);
+}
+
+.stat-item.item-unanswered {
   background: white;
-  border: 2px solid #e5e7eb;
-}
-
-.legend-text {
-  font-size: 12px;
   color: #6b7280;
+  border: 1px solid #d1d5db;
 }
 
-@media (max-width: 768px) {
-  .card-grid {
-    grid-template-columns: repeat(6, 1fr);
-    gap: 8px;
-  }
+.stat-item.item-unanswered:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+  transform: scale(1.1);
+}
 
-  .card-item {
-    font-size: 13px;
-    padding: 6px;
-  }
+.stat-item.current {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
 
-  .card-legend {
-    gap: 12px;
-  }
-
-  .legend-text {
-    font-size: 11px;
-  }
+.stat-empty {
+  font-size: 13px;
+  color: #9ca3af;
+  margin: 0;
+  padding: 4px 0;
 }
