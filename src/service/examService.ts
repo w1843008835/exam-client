@@ -18,3 +18,10 @@ export async function getAnswerCard(examType): Promise<UserAnswer> {
   const data = await get<UserAnswer>("/api/exam/answerCard/"+examType)
   return data
 }
+
+/**
+ * 清空重做：清除该用户在此题库下的全部答题记录
+ */
+export async function resetExam(param: { userId: number; examType: string }): Promise<void> {
+  await post<void>("/api/exam/reset", param)
+}

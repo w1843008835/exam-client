@@ -115,3 +115,14 @@ export interface QuestionDetailDto {
   examType: string
   userAnswer: string
 }
+
+/** 用户作答记录（前端本地维护，与接口返回的 UserAnswer 区分） */
+export interface ExamAnswer {
+  /** 题目 ID */
+  questionId: number
+  /** 已选选项 */
+  selectedOption: string[]
+  /** 是否答对 */
+  isCorrect: boolean
+}
+

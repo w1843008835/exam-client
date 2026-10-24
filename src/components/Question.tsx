@@ -3,7 +3,7 @@ import { ChevronLeft, ChevronRight, CheckCircle, XCircle, Lightbulb } from 'luci
 import { Question as QuestionType } from '../types';
 import { useExamStore } from '../store/examStore';
 import './Question.css';
-import { getExamDetail, getAnswerCard } from '@/service/examService';
+import { getAnswerCard } from '@/service/examService';
 import { USER_ID } from '@/constant/const';
 import { Exam, QuestionDetailDto } from '@/types';
 interface QuestionProps {
@@ -21,6 +21,7 @@ const Question: React.FC<QuestionProps> = ({ question, questionNumber, totalQues
     answerCard,
     questionDetail,
     exam,
+    fetchQuestionDetail,
   } = useExamStore();
 
    const [questionDetailParam, setQuestionDetailParam] = useState<QuestionDetailDto>(() => ({
@@ -30,31 +31,33 @@ const Question: React.FC<QuestionProps> = ({ question, questionNumber, totalQues
     questionNumber: 1,
   }));
 
-  const [choices, setChoices]=useState<string>(null)
+  const [choices, setChoices] = useState<string>('');
 
-  const userAnswer = userAnswers.find(a => a.questionId === question.id);
+  const userAnswer = userAnswers.find(a => a.questionId === questionDetail.questionId);
   const isMultipleChoice = questionDetail.questionType === '多选题';
 
-  const [tempSelected, setTempSelected] = useState<string[]>([]);
-
+  // 切换题目时：恢复该题本地已保存的答案
   useEffect(() => {
-    if (userAnswer) {
-      setTempSelected(userAnswer.selectedOption);
-    } else {
-      setTempSelected([]);
-    }
-  }, [question.id, userAnswer]);
+    setChoices(userAnswer ? userAnswer.selectedOption.join(',') : '');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [questionDetail.questionId]);
 
-  const selectedOptions = userAnswer?.selectedOption || [];
-  const showResult = userAnswer !== undefined && selectedOptions.length > 0;
+  // 以后端返回的 userAnswer 为准：null/undefined/空 → false（未作答），有值 → true
+  const showResult = Boolean(questionDetail.userAnswer);
+
+  // 结果态高亮后端返回的答案，与 showResult 保持同源
+  const savedAnswerArr = questionDetail.userAnswer
+    ? questionDetail.userAnswer.split(',').filter(Boolean)
+    : [];
 
   const optionKeys = Object.keys(question.options);
 
+  const currentChoices = choices ? choices.split(',') : [];
   const isOptionSelected = (key: string) => {
     if (showResult) {
-      return selectedOptions.includes(key);
+      return savedAnswerArr.includes(key);
     }
-    return tempSelected.includes(key);
+    return currentChoices.includes(key);
   };
 
   const checkAnswer = (selected: string[], correct: string[]) => {
@@ -82,6 +85,16 @@ const Question: React.FC<QuestionProps> = ({ question, questionNumber, totalQues
     }
     setChoices(newChoices);  // ← 用新计算的值更新 state
 
+    const selectedArr = newChoices ? newChoices.split(',') : [];
+    const correctArr = (questionDetail.correctAnswer || '').split(',').filter(Boolean);
+    const isCorrect = checkAnswer(selectedArr, correctArr);
+
+    // ▼ 每次点击都更新 store 中的 userAnswers（已答过则覆盖，未答过则追加）
+    addUserAnswer(questionDetail.questionId, selectedArr, isCorrect);
+
+    // 多选题：点击选项只记录本地，等【提交回答】时才提交到后端
+    if (isMultipleChoice) return;
+
     const currentIndex = questionDetail.sort;
     if (currentIndex > 1) {
       const newParam = {
@@ -90,29 +103,34 @@ const Question: React.FC<QuestionProps> = ({ question, questionNumber, totalQues
       };
       setQuestionDetailParam(newParam);
       console.log("newParam",newParam)
-      const newQuestionDetail = await getExamDetail(newParam);
-      useExamStore.getState().setQuestionDetail(newQuestionDetail);
+      await fetchQuestionDetail(newParam);
 
       const newAnswers = await getAnswerCard(exam.examType);
       useExamStore.getState().setAnswerCard(newAnswers);
     }
   };
 
+  // 多选题点击"提交回答"：确认最终答案并出结果
   const handleSubmit = async() => {
-    const currentIndex = questionDetail.sort;
-    if (currentIndex > 1) {
-      const newParam = {
-        ...questionDetailParam,
-        userAnswer: choices,
-      };
-      setQuestionDetailParam(newParam);
-          console.log("questionDetailParam",questionDetailParam)
-      const newQuestionDetail = await getExamDetail(newParam);
-      useExamStore.getState().setQuestionDetail(newQuestionDetail);
+    if (!choices) return;
 
-     const newAnswers= await getAnswerCard(exam.examType);
-     useExamStore.getState().setAnswerCard(newAnswers);
-    }
+    const selectedArr = choices.split(',');
+    const correctArr = (questionDetail.correctAnswer || '').split(',').filter(Boolean);
+    const isCorrect = checkAnswer(selectedArr, correctArr);
+
+    addUserAnswer(questionDetail.questionId, selectedArr, isCorrect);
+
+    // 提交答案并刷新题目详情：后端返回 userAnswer 后 showResult 自动变为 true
+    const newParam = {
+      ...questionDetailParam,
+      questionNumber: questionDetail.sort,
+      userAnswer: choices,
+    };
+    setQuestionDetailParam(newParam);
+    await fetchQuestionDetail(newParam);
+
+    const newAnswers = await getAnswerCard(exam.examType);
+    useExamStore.getState().setAnswerCard(newAnswers);
   };
 
   const handlePrev = async () => {
@@ -121,10 +139,10 @@ const Question: React.FC<QuestionProps> = ({ question, questionNumber, totalQues
       const newParam = {
         ...questionDetailParam,
         questionNumber: currentIndex - 1,
+         userAnswer:null
       };
       setQuestionDetailParam(newParam);
-      const newQuestionDetail = await getExamDetail(newParam);
-      useExamStore.getState().setQuestionDetail(newQuestionDetail);
+      await fetchQuestionDetail(newParam);
     }
   };
 
@@ -134,10 +152,10 @@ const Question: React.FC<QuestionProps> = ({ question, questionNumber, totalQues
       const newParam = {
         ...questionDetailParam,
         questionNumber: currentIndex + 1,
+        userAnswer:null
       };
       setQuestionDetailParam(newParam);
-      const newQuestionDetail = await getExamDetail(newParam);
-      useExamStore.getState().setQuestionDetail(newQuestionDetail);
+      await fetchQuestionDetail(newParam);
     }
   }
   const getOptionClass = (key: string) => {
@@ -148,9 +166,9 @@ const Question: React.FC<QuestionProps> = ({ question, questionNumber, totalQues
     }
     
     if (showResult) {
-      if (question.correctAnswer.includes(key)) {
+      if (questionDetail.correctAnswer.includes(key)) {
         classes.push('correct');
-      } else if (isOptionSelected(key) && !question.correctAnswer.includes(key)) {
+      } else if (isOptionSelected(key) && !questionDetail.correctAnswer.includes(key)) {
         classes.push('wrong');
       }
     }
@@ -188,10 +206,10 @@ const Question: React.FC<QuestionProps> = ({ question, questionNumber, totalQues
           >
             <span className="option-label">{item.label}</span>
             <span className="option-text">{item.value}</span>
-            {showResult && question.correctAnswer.includes(item.label) && (
+            {showResult && questionDetail.correctAnswer.includes(item.label) && (
               <CheckCircle size={20} className="option-icon correct-icon" />
             )}
-            {showResult && isOptionSelected(item.label) && !question.correctAnswer.includes(item.key) && (
+            {showResult && isOptionSelected(item.label) && !questionDetail.correctAnswer.includes(item.label) && (
               <XCircle size={20} className="option-icon wrong-icon" />
             )}
           </button>
@@ -209,12 +227,13 @@ const Question: React.FC<QuestionProps> = ({ question, questionNumber, totalQues
             </div>
             <div className="answer-item">
               <span className="answer-label">你的答案：</span>
-             questionDetail.correctAnswer === questionDetail.userAnswer ? (
+              {
+                questionDetail.correctAnswer === questionDetail.userAnswer ? (
               <span className="answer-value correct">{questionDetail.userAnswer}</span>
             ) : (
               <span className="answer-value wrong">{questionDetail.userAnswer}</span>
             )
-              
+              }           
             </div>
           </div>
 
@@ -242,7 +261,7 @@ const Question: React.FC<QuestionProps> = ({ question, questionNumber, totalQues
           <button
             className="nav-button submit"
             onClick={handleSubmit}
-            disabled={tempSelected.length === 0}
+            disabled={!choices}
           >
             <span>提交回答</span>
           </button>

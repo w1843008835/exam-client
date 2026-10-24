@@ -1,44 +1,23 @@
-import React, { useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, FileText } from 'lucide-react';
 import Question from '../../components/Question';
 import AnswerCard from '../../components/AnswerCard';
 import { useExamStore } from '../../store/examStore';
-import { getExamById, getQuestionsByExamId } from '../../mock/data';
 import '@/pages/style/ExamDetailPage.css';
 
 const ExamDetailPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const {
-    currentExam,
-    setCurrentExam,
-    questions,
-    setQuestions,
-    currentQuestionIndex,
-    resetExam,
-    exam,
-  } = useExamStore();
-
-  useEffect(() => {
-    if (id) {
-      const exam = getExamById(id);
-      const examQuestions = getQuestionsByExamId(id);
-      
-      if (exam && examQuestions.length > 0) {
-        setCurrentExam(exam);
-        setQuestions(examQuestions);
-        resetExam();
-      }
-    }
-  }, [id, setCurrentExam, setQuestions, resetExam]);
+  // exam / questionDetail / answerCard 由 ExamCard 点击【开始答题】时请求后写入 store
+  // questionDetail.userAnswer 由后端返回，用于 Question 内部判断 showResult
+  const { exam, questionDetail } = useExamStore();
 
   const handleBack = () => {
     navigate('/home/exam-list');
   };
 
-  if (!currentExam || questions.length === 0) {
+  if (!exam || !questionDetail) {
     return (
       <div className="exam-detail-container">
         <div className="loading-state">
@@ -48,8 +27,6 @@ const ExamDetailPage: React.FC = () => {
       </div>
     );
   }
-
-  const currentQuestion = questions[currentQuestionIndex];
 
   return (
     <div className="exam-detail-container">
@@ -64,9 +41,9 @@ const ExamDetailPage: React.FC = () => {
       <div className="detail-content">
         <div className="question-section">
           <Question
-            question={currentQuestion}
-            questionNumber={currentQuestionIndex + 1}
-            totalQuestions={questions.length}
+            question={questionDetail}
+            questionNumber={questionDetail.sort}
+            totalQuestions={exam.questionCount}
           />
         </div>
 

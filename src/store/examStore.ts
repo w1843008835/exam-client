@@ -1,12 +1,21 @@
 import { create } from 'zustand';
-import { Exam, Question, UserAnswer, User } from '../types';
+import { Exam, Question, UserAnswer, User, ExamAnswer, QuestionDetailDto } from '../types';
+import { getExamDetail } from '../service/examService';
+
+/** 判断作答是否正确（忽略选项顺序） */
+function isAnswerCorrect(selected: string[], correct: string[]): boolean {
+  if (selected.length !== correct.length) return false;
+  const s = [...selected].sort();
+  const c = [...correct].sort();
+  return s.every((v, i) => v === c[i]);
+}
 
 interface ExamStore {
   user: User | null;
   currentExam: Exam | null;
   questions: Question[];
   currentQuestionIndex: number;
-  userAnswers: UserAnswer[];
+  userAnswers: ExamAnswer[];
   isCompleted: boolean;
   answerCard: UserAnswer ;
   questionDetail: Question ;
@@ -20,10 +29,15 @@ interface ExamStore {
   setCurrentExam: (exam: Exam | null) => void;
   setQuestions: (questions: Question[]) => void;
   setCurrentQuestionIndex: (index: number) => void;
-  addUserAnswer: (questionId: string, selectedOption: number, isCorrect: boolean) => void;
+  addUserAnswer: (questionId: number, selectedOption: string[], isCorrect: boolean) => void;
+  /**
+   * 请求题目详情（POST /api/exam/question）
+   * 下一题/上一题/答题卡跳题 共用，请求成功后用后端返回的 userAnswer 同步 userAnswers
+   */
+  fetchQuestionDetail: (param: QuestionDetailDto) => Promise<Question>;
   setIsCompleted: (completed: boolean) => void;
   resetExam: () => void;
-  getAnswerStatus: (questionId: string) => 'correct' | 'wrong' | 'unanswered';
+  getAnswerStatus: (questionId: number) => 'correct' | 'wrong' | 'unanswered';
   getStatistics: () => { correct: number; wrong: number; unanswered: number; accuracy: number };
 }
 
@@ -52,15 +66,31 @@ export const useExamStore = create<ExamStore>((set, get) => ({
 
   setCurrentQuestionIndex: (index) => set({ currentQuestionIndex: index }),
 
-  addUserAnswer: (questionId: string, selectedOption: string[], isCorrect: boolean) => set((state) => {
+  addUserAnswer: (questionId: number, selectedOption: string[], isCorrect: boolean) => set((state) => {
+    // 已答过则覆盖，未答过则追加
     const existingIndex = state.userAnswers.findIndex(a => a.questionId === questionId);
+    const newAnswer: ExamAnswer = { questionId, selectedOption, isCorrect };
     const updatedAnswers = existingIndex >= 0
-      ? [...state.userAnswers.slice(0, existingIndex), { questionId, selectedOption, isCorrect }, ...state.userAnswers.slice(existingIndex + 1)]
-      : [...state.userAnswers, { questionId, selectedOption, isCorrect }];
-    
-    const allAnswered = state.questions.every(q => updatedAnswers.some(a => a.questionId === q.id));
+      ? state.userAnswers.map((a, i) => (i === existingIndex ? newAnswer : a))
+      : [...state.userAnswers, newAnswer];
+
+    const allAnswered = state.questions.length > 0
+      && state.questions.every(q => updatedAnswers.some(a => a.questionId === q.questionId));
     return { userAnswers: updatedAnswers, isCompleted: allAnswered };
   }),
+
+  fetchQuestionDetail: async (param: QuestionDetailDto) => {
+    const detail = await getExamDetail(param);
+    set({ questionDetail: detail });
+
+    // 后端返回该题已作答内容，则同步进 userAnswers（已存在则覆盖）
+    if (detail?.userAnswer) {
+      const selectedArr = detail.userAnswer.split(',').filter(Boolean);
+      const correctArr = (detail.correctAnswer || '').split(',').filter(Boolean);
+      get().addUserAnswer(detail.questionId, selectedArr, isAnswerCorrect(selectedArr, correctArr));
+    }
+    return detail;
+  },
 
   setIsCompleted: (completed) => set({ isCompleted: completed }),
 

@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { useExamStore } from '@/store/examStore';
 import { CheckCircle, XCircle, HelpCircle, ChevronDown, ChevronRight } from 'lucide-react';
 import './AnswerCard.css';
-import {ANSWER_STATUS_UNDO,ANSWER_STATUS_CORRECT,ANSWER_STATUS_WRONG} from '@/constant/const';
+import {ANSWER_STATUS_UNDO,ANSWER_STATUS_CORRECT,ANSWER_STATUS_WRONG,USER_ID} from '@/constant/const';
+import type { QuestionDetailDto } from '@/types';
 
 const AnswerCard: React.FC = () => {
-  const { answerCard, exam, currentQuestionIndex, setCurrentQuestionIndex } = useExamStore();
+  const { answerCard, exam, questionDetail, fetchQuestionDetail } = useExamStore();
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   if (!answerCard || !exam) {
@@ -16,26 +17,19 @@ const AnswerCard: React.FC = () => {
     setExpanded(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
+  // 点击题号：与"下一题"共用同一个接口（POST /api/exam/question），只是 questionNumber 不同
+  const handleJump = (num: number) => {
+    const param: QuestionDetailDto = {
+      userId: Number(localStorage.getItem(USER_ID)),
+      examType: exam.examType,
+      userAnswer: null,
+      questionNumber: num,
+    };
+    fetchQuestionDetail(param);
+  };
+
   const totalQuestions = exam.questionCount;
 
-  // // 正确题号
-  // const correctList = answerCard.options
-  //   .filter(o => o.isCorrect==ANSWER_STATUS_CORRECT)
-  //   .map(o => o.questionNumber);
-
-  // // 错误题号（作答但答错）
-  // const wrongList = answerCard.options
-  //   .filter(o => !o.isCorrect)
-  //   .map(o => o.questionNumber);
-
-  // // 未答题号：1~totalQuestions 中不在 answerCard.options 里的
-  // const answeredNumbers = new Set(answerCard.options.map(o => o.questionNumber));
-  // const unansweredList: number[] = [];
-  // for (let i = 1; i <= totalQuestions; i++) {
-  //   if (!answeredNumbers.has(i)) {
-  //     unansweredList.push(i);
-  //   }
-  // }
 let correctList = [];
 let wrongList = [];
 let unansweredList = [];
@@ -104,8 +98,8 @@ answerCard.options.forEach(item => {
                     {section.list.map(num => (
                       <span
                         key={num}
-                        className={`stat-item ${section.itemClass} ${num - 1 === currentQuestionIndex ? 'current' : ''}`}
-                        onClick={() => setCurrentQuestionIndex(num - 1)}
+                        className={`stat-item ${section.itemClass} ${num === questionDetail?.sort ? 'current' : ''}`}
+                        onClick={() => handleJump(num)}
                       >
                         {num}
                       </span>
