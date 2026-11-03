@@ -95,19 +95,17 @@ const Question: React.FC<QuestionProps> = ({ question, questionNumber, totalQues
     // 多选题：点击选项只记录本地，等【提交回答】时才提交到后端
     if (isMultipleChoice) return;
 
-    const currentIndex = questionDetail.sort;
-    if (currentIndex > 1) {
-      const newParam = {
-        ...questionDetailParam,
-        userAnswer: newChoices,  // ← 直接用新值，不等 state 更新
-      };
-      setQuestionDetailParam(newParam);
-      console.log("newParam",newParam)
-      await fetchQuestionDetail(newParam);
+    // 单选：点击即提交并刷新题目详情（后端返回 userAnswer 后 showResult 自动为 true）
+    const newParam = {
+      ...questionDetailParam,
+      questionNumber: questionDetail.sort,
+      userAnswer: newChoices,  // ← 直接用新值，不等 state 更新
+    };
+    setQuestionDetailParam(newParam);
+    await fetchQuestionDetail(newParam);
 
-      const newAnswers = await getAnswerCard(exam.examType);
-      useExamStore.getState().setAnswerCard(newAnswers);
-    }
+    const newAnswers = await getAnswerCard(exam.examType);
+    useExamStore.getState().setAnswerCard(newAnswers);
   };
 
   // 多选题点击"提交回答"：确认最终答案并出结果
